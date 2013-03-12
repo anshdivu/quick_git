@@ -21,16 +21,17 @@ end
 
 opt_parser.parse!
 
+JIRA_PREFIX ='PHAPPINFRA'
 git_msg = ""
 
 if options.has_key?(:jira) && options.has_key?(:msg)
-	git_msg = "PHAPPINFRA-#{options[:jira]} #{options[:msg]}"
+	git_msg = "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
 elsif options.has_key?(:jira)
-	git_msg = "PHAPPINFRA-#{options[:jira]}"
+	git_msg = "#{JIRA_PREFIX}-#{options[:jira]}"
 elsif options.has_key?(:msg)
 	git_msg = options[:msg]
 elsif ARGV.size >= 2
-  git_msg = "PHAPPINFRA-#{ARGV[0]} #{ARGV[1]}"
+  git_msg = "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
 end
 
 unless git_msg.empty?
