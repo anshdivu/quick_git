@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+options = {}
+opt_parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: gcj -j 100 -m "commit message"'
+
+  opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPINFRA-<jira> <msg>'") do |jira_num|
+    options[:jira] = jira_num
+  end
+
+  opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPINFRA-<jira> <msg>' as the commit message format") do |message|
+    options[:msg] = message
+  end
+
+  opts.on("-h","--help","Prints help message") do
+    puts opt_parser.help
+  end
+end
+
+opt_parser.parse!
+
+git_msg = ""
+
+if options.has_key?(:jira) && options.has_key?(:msg)
+	git_msg = "PHAPPINFRA-#{options[:jira]} #{options[:msg]}"
+elsif options.has_key?(:jira)
+	git_msg = "PHAPPINFRA-#{options[:jira]}"
+elsif options.has_key?(:msg)
+	git_msg = options[:msg]
+elsif ARGV.size >= 2
+  git_msg = "PHAPPINFRA-#{ARGV[0]} #{ARGV[1]}"
+end
+
+unless git_msg.empty?
+	exec("git commit -v -m \"#{git_msg}\"")
+end
