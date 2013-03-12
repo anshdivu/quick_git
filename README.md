@@ -3,7 +3,7 @@ Git-Commit-with-Jira-ID
 
 Link the script to local bin folder:
 
-    ln -s git_commit_jira /usr/local/bin/gcj
+    ln -s $PWD/git_commit_jira /usr/local/bin/gcj
 
 Usage Example:
 
