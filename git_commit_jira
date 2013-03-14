@@ -2,15 +2,20 @@
 
 require 'optparse'
 
+JIRA_PREFIX ='PHAPPINFRA'
+git_msg = ""
+
 options = {}
 opt_parser = OptionParser.new do |opts|
   opts.banner = 'Usage: gcj -j 100 -m "commit message"'
 
-  opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPINFRA-<jira> <msg>'") do |jira_num|
+  opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message.
+                                 The commit message format will be 'PHAPPINFRA-<jira> <msg>'") do |jira_num|
     options[:jira] = jira_num
   end
 
-  opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPINFRA-<jira> <msg>' as the commit message format") do |message|
+  opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided
+                             then uses 'PHAPPINFRA-<jira> <msg>' as the commit message format") do |message|
     options[:msg] = message
   end
 
@@ -21,15 +26,12 @@ end
 
 opt_parser.parse!
 
-JIRA_PREFIX ='PHAPPINFRA'
-git_msg = ""
-
 if options.has_key?(:jira) && options.has_key?(:msg)
-	git_msg = "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
+  git_msg = "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
 elsif options.has_key?(:jira)
-	git_msg = "#{JIRA_PREFIX}-#{options[:jira]}"
+  git_msg = "#{JIRA_PREFIX}-#{options[:jira]}"
 elsif options.has_key?(:msg)
-	git_msg = options[:msg]
+  git_msg = options[:msg]
 elsif ARGV.size >= 2
   git_msg = "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
 end
