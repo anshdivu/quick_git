@@ -14,6 +14,10 @@ def cmd_options
       options[:msg] = message
     end
 
+    opts.on('-p', '--push', 'Push commits to remote') do |message|
+      options[:push] = true
+    end
+
     opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do |message|
       options[:open] = true
     end
@@ -36,12 +40,18 @@ def git_message(options)
     return options[:msg]
   elsif ARGV.size >= 2
     return "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
+  else
+    return ''
   end
 end
 
 def git_commit(msg)
   return false if msg.empty?
   system("git commit -v -m \"#{msg}\"")
+end
+
+def git_push
+  system('git push')
 end
 
 def last_commit_url
@@ -67,7 +77,11 @@ if __FILE__ == $PROGRAM_NAME
   commit_status = git_commit(git_msg)
   # commit_status = true
 
-  if commit_status && options[:open]
-    copy_and_open(last_commit_url)
+  if commit_status && options[:push]
+    push_status = git_push
+
+    if push_status && options[:open]
+      copy_and_open(last_commit_url)
+    end
   end
 end
