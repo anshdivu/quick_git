@@ -1,39 +1,73 @@
 #!/usr/bin/env ruby
-
 require 'optparse'
 
+def cmd_options
+  options = {}
+  opt_parser = OptionParser.new do |opts|
+    opts.banner = 'Usage: gcj -j 100 -m "commit message"'
+
+    opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPINFRA-<jira> <msg>'") do |jira_num|
+      options[:jira] = jira_num
+    end
+
+    opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPINFRA-<jira> <msg>' as the commit message format") do |message|
+      options[:msg] = message
+    end
+
+    opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do |message|
+      options[:open] = true
+    end
+
+    opts.on("-h","--help","Prints help message") do
+      puts opt_parser.help
+    end
+  end
+  opt_parser.parse!
+  options
+end
+
 JIRA_PREFIX ='PHAPPINFRA'
-git_msg = ""
-
-options = {}
-opt_parser = OptionParser.new do |opts|
-  opts.banner = 'Usage: gcj -j 100 -m "commit message"'
-
-  opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPINFRA-<jira> <msg>'") do |jira_num|
-    options[:jira] = jira_num
-  end
-
-  opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPINFRA-<jira> <msg>' as the commit message format") do |message|
-    options[:msg] = message
-  end
-
-  opts.on("-h","--help","Prints help message") do
-    puts opt_parser.help
+def git_message(options)
+  if options.has_key?(:jira) && options.has_key?(:msg)
+    return "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
+  elsif options.has_key?(:jira)
+    return "#{JIRA_PREFIX}-#{options[:jira]}"
+  elsif options.has_key?(:msg)
+    return options[:msg]
+  elsif ARGV.size >= 2
+    return "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
   end
 end
 
-opt_parser.parse!
-
-if options.has_key?(:jira) && options.has_key?(:msg)
-  git_msg = "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
-elsif options.has_key?(:jira)
-  git_msg = "#{JIRA_PREFIX}-#{options[:jira]}"
-elsif options.has_key?(:msg)
-  git_msg = options[:msg]
-elsif ARGV.size >= 2
-  git_msg = "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
+def git_commit(msg)
+  return false if msg.empty?
+  system("git commit -v -m \"#{msg}\"")
 end
 
-unless git_msg.empty?
-  exec("git commit -v -m \"#{git_msg}\"")
+def last_commit_url
+  url = `git config --get remote.origin.url`
+  return '' if url.empty?
+
+  commit_id = `git rev-parse HEAD`
+  return '' if commit_id.empty?
+
+  url[0, url.length - ".git\n".length] + '/commit/' + commit_id
+end
+
+def copy_and_open(url)
+  return false if url.empty?
+
+  system "echo '#{url}' | pbcopy"
+  system "open #{url}"
+end
+
+if __FILE__ == $PROGRAM_NAME
+  options = cmd_options
+  git_msg = git_message(options)
+  commit_status = git_commit(git_msg)
+  # commit_status = true
+
+  if commit_status && options[:open]
+    copy_and_open(last_commit_url)
+  end
 end
