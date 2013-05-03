@@ -51,7 +51,7 @@ def git_commit(msg)
 end
 
 def git_push
-  system('git push')
+  system('git push origin')
 end
 
 def last_commit_url
