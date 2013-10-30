@@ -15,4 +15,4 @@ Usage Example:
 
 This command would internally execute:
 
-    $ git commit -v -m "PHAPPINFRA-100 Easy Commit"
+    $ git commit -v -m "PHAPPDEV-100 Easy Commit"
