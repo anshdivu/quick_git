@@ -62,17 +62,17 @@ class Branch
   def jira
     prefix_or_jira_num, jira_num, _ = name.split('-', 3)
 
-    if number?(prefix_or_jira_num)
+    if number?(prefix_or_jira_num) # assuming branch name format => NUM-my-description
       {
         prefix: nil,
         num: prefix_or_jira_num
       }
-    elsif number?(jira_num)
+    elsif number?(jira_num) # assuming branch name format => PREFIX-NUM-my-description
       {
         prefix: prefix_or_jira_num,
         num: jira_num
       }
-    else
+    else # invalid branch naming format
       {
         prefix: nil,
         num: nil
