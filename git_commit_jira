@@ -11,7 +11,7 @@ class Git
   end
 
   def commit!(msg)
-    `git commit -v -m "#{msg}"`
+    system "git commit -v -m \"#{msg}\""
   end
 
   def last_commit_id
@@ -23,11 +23,11 @@ class Git
   end
 
   def push!
-    `git push origin #{branch_name}`
+    system "git push origin #{branch_name}"
   end
 
   def remote_url
-    @remote_url ||= `git ls-remote --get-url`.chomp
+    @remote_url ||= `git ls-remote --get-url`.chomp(".git\n")
   end
 
   def jira_number
@@ -100,10 +100,10 @@ class CommandLine
       puts git.last_commit_url
     end
 
-    copy_and_open(git.last_commit_url) if options[:open]
+    copy_and_open!(git.last_commit_url) if options[:open]
   end
 
-  def copy_and_open(url)
+  def copy_and_open!(url)
     return false if url.empty?
 
     system "echo '#{url}' | pbcopy"
