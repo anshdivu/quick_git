@@ -1,87 +1,156 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
-def cmd_options
-  options = {}
-  opt_parser = OptionParser.new do |opts|
-    opts.banner = 'Usage: gcj -j 100 -m "commit message"'
+class Git
+  def branch
+    @branch ||= Branch.new
+  end
 
-    opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPDEV-<jira> <msg>'") do |jira_num|
-      options[:jira] = jira_num
-    end
+  def branch_name
+    branch.name
+  end
 
-    opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPDEV-<jira> <msg>' as the commit message format") do |message|
-      options[:msg] = message
-    end
+  def commit!(msg)
+    `git commit -v -m "#{msg}"`
+  end
 
-    opts.on('-p', '--push', 'Push commits to remote') do |message|
-      options[:push] = true
-    end
+  def last_commit_id
+    @last_commit_id ||= `git rev-parse HEAD`.chomp
+  end
 
-    opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do |message|
-      options[:open] = true
-    end
+  def last_commit_url
+    "#{remote_url}/commit/#{last_commit_id}"
+  end
 
-    opts.on("-h","--help","Prints help message") do
-      puts opt_parser.help
+  def push!
+    `git push origin #{branch_name}`
+  end
+
+  def remote_url
+    @remote_url ||= `git ls-remote --get-url`.chomp
+  end
+
+  def jira_number
+    branch.jira_number || raise('Incorrect Branch Name Format (Branch Name Format => "PREFIX-NUMBER-jira-description")')
+  end
+
+  def jira_prefix
+    branch.jira_prefix || github_org_name || raise('jira prefix not found from remote repo')
+  end
+
+  def github_org_name
+    org_name = remote_url.split('/')[-2]
+    org_name && org_name.upcase
+  end
+end
+
+class Branch
+  def name
+    @name ||= `git symbolic-ref --short HEAD`.chomp
+  end
+
+  def jira_prefix
+    @jira_prefix ||= jira[:prefix]
+  end
+
+  def jira_number
+    @jira_number ||= jira[:num]
+  end
+
+  private
+
+  def jira
+    prefix_or_jira_num, jira_num, _ = name.split('-', 3)
+
+    if number?(prefix_or_jira_num)
+      {
+        prefix: nil,
+        num: prefix_or_jira_num
+      }
+    elsif number?(jira_num)
+      {
+        prefix: prefix_or_jira_num,
+        num: jira_num
+      }
+    else
+      {
+        prefix: nil,
+        num: nil
+      }
     end
   end
-  opt_parser.parse!
-  options
-end
 
-JIRA_PREFIX ='PHAPPDEV'
-def git_message(options)
-  if options.has_key?(:jira) && options.has_key?(:msg)
-    return "#{JIRA_PREFIX}-#{options[:jira]} #{options[:msg]}"
-  elsif options.has_key?(:jira)
-    return "#{JIRA_PREFIX}-#{options[:jira]}"
-  elsif options.has_key?(:msg)
-    return options[:msg]
-  elsif ARGV.size >= 2
-    return "#{JIRA_PREFIX}-#{ARGV[0]} #{ARGV[1]}"
-  else
-    return ''
+  def number?(num)
+    !!Float(num) rescue false
   end
 end
 
-def git_commit(msg)
-  return false if msg.empty?
-  system("git commit -v -m \"#{msg}\"")
-end
+class CommandLine
+  attr_reader :options, :git
+  def initialize
+    @options = cmd_options
+    @git = Git.new
+  end
 
-def git_push
-  system('git push origin')
-end
+  def run
+    git.commit!(message) if options[:msg]
 
-def last_commit_url
-  url = `git config --get remote.origin.url`
-  return '' if url.empty?
+    if options[:push]
+      git.push!
+      puts git.last_commit_url
+    end
 
-  commit_id = `git rev-parse HEAD`
-  return '' if commit_id.empty?
+    copy_and_open(git.last_commit_url) if options[:open]
+  end
 
-  url[0, url.length - ".git\n".length] + '/commit/' + commit_id
-end
+  def copy_and_open(url)
+    return false if url.empty?
 
-def copy_and_open(url)
-  return false if url.empty?
+    system "echo '#{url}' | pbcopy"
+    system "open #{url}"
+  end
 
-  system "echo '#{url}' | pbcopy"
-  system "open #{url}"
+  def message
+    prefix = options.fetch(:prefix) { git.jira_prefix }
+    number = options.fetch(:jira) { git.jira_number }
+
+    "#{prefix}-#{number} #{options[:msg]}"
+  end
+
+  def cmd_options
+    options = {}
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = 'Usage: gcj -j 100 -m "commit message"'
+
+      opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPDEV-<jira> <msg>'") do |jira_num|
+        options[:jira] = jira_num
+      end
+
+      opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPDEV-<jira> <msg>' as the commit message format") do |message|
+        options[:msg] = message
+      end
+
+      opts.on('-r', '--prefix', 'Jira prefix') do |prefix|
+        options[:prefix] = prefix
+      end
+
+      opts.on('-p', '--push', 'Push commits to remote') do |message|
+        options[:push] = true
+      end
+
+      opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do |message|
+        options[:open] = true
+      end
+
+      opts.on("-h","--help","Prints help message") do
+        puts opt_parser.help
+      end
+    end
+    opt_parser.parse!
+    options
+  end
 end
 
 if __FILE__ == $PROGRAM_NAME
-  options = cmd_options
-  git_msg = git_message(options)
-  commit_status = git_commit(git_msg)
-  # commit_status = true
-
-  if commit_status && options[:push]
-    push_status = git_push
-
-    if push_status && options[:open]
-      copy_and_open(last_commit_url)
-    end
-  end
+  CommandLine.new.run
 end
