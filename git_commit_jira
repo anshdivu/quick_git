@@ -19,7 +19,9 @@ class Git
   end
 
   def push!
-    system("git push origin #{branch_name}") && puts(last_commit_url)
+    status = system("git push origin #{branch_name}")
+    puts last_commit_url if status
+    status
   end
 
   def last_commit_id
