@@ -12,7 +12,7 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/gcj
 * Assuming you are working in branch "PHAPPDEV-123-my-branch"
 
   ```bash
-  $ gcj -m "Easy Commit"
+  $ gcj "Easy Commit"
   ```
 
   This command would internally execute:
@@ -22,9 +22,17 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/gcj
 * Assuming you are working in branch "123-my-branch" and the repo url is "http://github.cerner.com/PhAppInfra/MyProject"
 
   ```bash
-  $ gcj -m "Easy Commit"
+  $ gcj "Easy Commit"
   ```
 
   This command would internally execute:
   ```bash
   $ git commit -v -m "PHAPPINFRA-123 Easy Commit"
+
+* Use '-h' or '--help' to get help manual
+
+  ```bash
+  $ gcj -h
+  #### or ####
+  $ gcj --help
+  ```
