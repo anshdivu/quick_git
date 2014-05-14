@@ -44,7 +44,7 @@ class Git
     raw_remote_url = `git ls-remote --get-url`
 
     if raw_remote_url.start_with?('git@')
-      _, base_url, org_slash_repo = url.split(%r{@(.*):})
+      _, base_url, org_slash_repo = raw_remote_url.split(%r{@(.*):})
       raw_remote_url = "http://#{base_url}/#{org_slash_repo}"
     end
 
