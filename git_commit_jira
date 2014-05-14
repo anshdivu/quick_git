@@ -10,8 +10,12 @@ class Git
     branch.name
   end
 
-  def commit!(msg)
-    system "git commit -v -m \"#{msg}\""
+  def commit!(msg, options = {})
+    if options[:stage_all]
+      system "git commit -v -a -m \"#{msg}\""
+    else
+      system "git commit -v -m \"#{msg}\""
+    end
   end
 
   def last_commit_id
@@ -106,7 +110,7 @@ class CommandLine
   end
 
   def run
-    git.commit!(message) if options[:msg]
+    git.commit!(message, stage_all: options[:stage_all]) if options[:msg]
 
     if options[:push]
       git.push!
@@ -125,7 +129,7 @@ class CommandLine
 
   def message
     prefix = options.fetch(:prefix) { git.jira_prefix }
-    number = options.fetch(:jira) { git.jira_number }
+    number = options.fetch(:number) { git.jira_number }
 
     "#{prefix}-#{number} #{options[:msg]}"
   end
@@ -133,30 +137,34 @@ class CommandLine
   def cmd_options
     options = {}
     opt_parser = OptionParser.new do |opts|
-      opts.banner = 'Usage: gcj -j 100 -m "commit message"'
+      opts.banner = 'Usage: gcj -m "commit message"'
 
-      opts.on("-j", "--jira <jira>", "Uses the given <jira> number as part of the commit message. The commit message format will be 'PHAPPDEV-<jira> <msg>'") do |jira_num|
-        options[:jira] = jira_num
+      opts.on('-a', '--all', 'automatically stage files that have been modified and deleted') do
+        options[:stage_all] = true
       end
 
-      opts.on("-m", "--message <msg>", "Uses the given <msg> as the commit message. If --jira is provided then uses 'PHAPPDEV-<jira> <msg>' as the commit message format") do |message|
+      opts.on('-h','--help','Prints help message') do
+        puts opt_parser.help
+      end
+
+      opts.on('-m', '--message=<msg>', "Uses the given <msg> as the commit message. Uses '<prefix>-<number> <msg>' as the commit message format") do |message|
         options[:msg] = message
       end
 
-      opts.on('-r', '--prefix', 'Jira prefix') do |prefix|
-        options[:prefix] = prefix
+      opts.on('-n', '--number=<number>', "Uses the given <number> as part of the commit message. The commit message format will be '<prefix>-<number> <msg>'") do |number|
+        options[:number] = jira_num
       end
 
-      opts.on('-p', '--push', 'Push commits to remote') do |message|
-        options[:push] = true
-      end
-
-      opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do |message|
+      opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do
         options[:open] = true
       end
 
-      opts.on("-h","--help","Prints help message") do
-        puts opt_parser.help
+      opts.on('-p', '--push', 'Push commits to remote') do
+        options[:push] = true
+      end
+
+      opts.on('-r', '--prefix=<prefix>', "Uses the given <prefix> as part of the commit message. The commit message format will be '<prefix>-<NUMBER> <msg>'") do |prefix|
+        options[:prefix] = prefix
       end
     end
     opt_parser.parse!
