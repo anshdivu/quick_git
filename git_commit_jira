@@ -47,7 +47,7 @@ class Git
   def create_remote_url
     raw_remote_url = `git ls-remote --get-url`
 
-    if raw_remote_url.start_with?('git@')
+    if raw_remote_url.start_with?('git@') # if the remote url is ssh protocol instead of https
       _, base_url, org_slash_repo = raw_remote_url.split(%r{@(.*):})
       raw_remote_url = "http://#{base_url}/#{org_slash_repo}"
     end
@@ -139,7 +139,7 @@ class CommandLine
     opt_parser = OptionParser.new do |opts|
       opts.banner = 'Usage: gcj -m "commit message"'
 
-      opts.on('-a', '--all', 'automatically stage files that have been modified and deleted') do
+      opts.on('-a', '--all', 'automatically stage files that have been modified and/or deleted') do
         options[:stage_all] = true
       end
 
@@ -168,6 +168,9 @@ class CommandLine
       end
     end
     opt_parser.parse!
+
+    options[:msg] = ARGV[0] if !options.has_key?(:msg) && ARGV.size == 1
+
     options
   end
 end
