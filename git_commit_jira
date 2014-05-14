@@ -11,11 +11,9 @@ class Git
   end
 
   def commit!(msg, options = {})
-    if options[:stage_all]
-      system "git commit -v -a -m \"#{msg}\""
-    else
-      system "git commit -v -m \"#{msg}\""
-    end
+    system "git add -A ." if options[:stage_all]
+
+    system "git commit -v -m \"#{msg}\""
   end
 
   def last_commit_id
@@ -139,7 +137,7 @@ class CommandLine
     opt_parser = OptionParser.new do |opts|
       opts.banner = 'Usage: gcj -m "commit message"'
 
-      opts.on('-a', '--all', 'automatically stage files that have been modified and/or deleted') do
+      opts.on('-a', '--all', 'automatically stage files that have been modified, added or deleted') do
         options[:stage_all] = true
       end
 
