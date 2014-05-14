@@ -10,10 +10,16 @@ class Git
     branch.name
   end
 
-  def commit!(msg, options = {})
-    system "git add -A ." if options[:stage_all]
+  def add_all!
+    system 'git add -A .'
+  end
 
+  def commit!(msg)
     system "git commit -v -m \"#{msg}\""
+  end
+
+  def push!
+    system("git push origin #{branch_name}") && puts git.last_commit_url
   end
 
   def last_commit_id
@@ -22,10 +28,6 @@ class Git
 
   def last_commit_url
     "#{remote_url}/commit/#{last_commit_id}"
-  end
-
-  def push!
-    system "git push origin #{branch_name}"
   end
 
   def remote_url
@@ -45,7 +47,7 @@ class Git
   def create_remote_url
     raw_remote_url = `git ls-remote --get-url`
 
-    if raw_remote_url.start_with?('git@') # if the remote url is ssh protocol instead of https
+    if raw_remote_url.start_with?('git@') # if ssh protocol is being used instead of https
       _, base_url, org_slash_repo = raw_remote_url.split(%r{@(.*):})
       raw_remote_url = "http://#{base_url}/#{org_slash_repo}"
     end
@@ -108,19 +110,13 @@ class CommandLine
   end
 
   def run
-    git.commit!(message, stage_all: options[:stage_all]) if options[:msg]
-
-    if options[:push]
-      git.push!
-      puts git.last_commit_url
-    end
-
+    git.add_all! if options[:add_all]
+    git.commit!(message) if options[:msg]
+    git.push! if options[:push]
     copy_and_open!(git.last_commit_url) if options[:open]
   end
 
   def copy_and_open!(url)
-    return false if url.empty?
-
     system "echo '#{url}' | pbcopy"
     system "open #{url}"
   end
@@ -138,7 +134,7 @@ class CommandLine
       opts.banner = 'Usage: gcj -m "commit message"'
 
       opts.on('-a', '--all', 'automatically stage files that have been modified, added or deleted') do
-        options[:stage_all] = true
+        options[:add_all] = true
       end
 
       opts.on('-h','--help','Prints help message') do
