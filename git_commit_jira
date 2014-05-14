@@ -19,7 +19,7 @@ class Git
   end
 
   def push!
-    system("git push origin #{branch_name}") && puts git.last_commit_url
+    system("git push origin #{branch_name}") && puts(last_commit_url)
   end
 
   def last_commit_id
@@ -46,13 +46,14 @@ class Git
 
   def create_remote_url
     raw_remote_url = `git ls-remote --get-url`
+    convert_ssh_url_to_http_url(raw_remote_url).chomp(".git\n")
+  end
 
-    if raw_remote_url.start_with?('git@') # if ssh protocol is being used instead of https
-      _, base_url, org_slash_repo = raw_remote_url.split(%r{@(.*):})
-      raw_remote_url = "http://#{base_url}/#{org_slash_repo}"
-    end
+  def convert_ssh_url_to_http_url(raw_remote_url)
+    return raw_remote_url unless raw_remote_url.start_with?('git@')
 
-    raw_remote_url.chomp(".git\n")
+    _, base_url, org_slash_repo = raw_remote_url.split(/@(.*):/)
+    "http://#{base_url}/#{org_slash_repo}"
   end
 
   def github_org_name
