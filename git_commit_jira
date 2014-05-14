@@ -27,7 +27,7 @@ class Git
   end
 
   def remote_url
-    @remote_url ||= `git ls-remote --get-url`.chomp(".git\n")
+    @remote_url ||= create_remote_url
   end
 
   def jira_number
@@ -36,6 +36,19 @@ class Git
 
   def jira_prefix
     branch.jira_prefix || github_org_name || raise('jira prefix not found from remote repo')
+  end
+
+  private
+
+  def create_remote_url
+    raw_remote_url = `git ls-remote --get-url`
+
+    if raw_remote_url.start_with?('git@')
+      _, base_url, org_slash_repo = url.split(%r{@(.*):})
+      raw_remote_url = "http://#{base_url}/#{org_slash_repo}"
+    end
+
+    raw_remote_url.chomp(".git\n")
   end
 
   def github_org_name
