@@ -128,7 +128,7 @@ class CommandLine
     prefix = options.fetch(:prefix) { git.jira_prefix }
     number = options.fetch(:number) { git.jira_number }
 
-    "#{prefix}-#{number} #{options[:msg]}"
+    "#{prefix}-#{number}: #{options[:msg]}"
   end
 
   def cmd_options
