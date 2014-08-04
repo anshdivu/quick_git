@@ -48,14 +48,14 @@ class Git
 
   def create_remote_url
     raw_remote_url = `git ls-remote --get-url`.chomp
-    convert_ssh_url_to_http_url(raw_remote_url)
+    convert_ssh_url_to_http_url(raw_remote_url).chomp('.git')
   end
 
   def convert_ssh_url_to_http_url(raw_remote_url)
     return raw_remote_url unless raw_remote_url.start_with?('git@')
 
     _, base_url, org_slash_repo = raw_remote_url.split(/@(.*):/)
-    "http://#{base_url}/#{org_slash_repo}".chomp('.git')
+    "http://#{base_url}/#{org_slash_repo}"
   end
 
   def github_org_name
