@@ -134,7 +134,7 @@ class CommandLine
   def cmd_options
     options = {}
     opt_parser = OptionParser.new do |opts|
-      opts.banner = 'Usage: gcj -m "commit message"'
+      opts.banner = 'Usage: qg "commit message"'
 
       opts.on('-a', '--all', 'automatically stage files that have been modified, added or deleted') do
         options[:add_all] = true
