@@ -43,8 +43,8 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
   $ git add -A .
   $ git commit -v -m "ISSUE-NUM Easy Commit"
   $ git push origin CURRENT_BRANCH
-  $ echo "commit_url" | pbcopy # OS X only - copies to clipboard
-  $ open "commit_url" # OS X only - opens in web browser
+  $ echo "commit_url" | pbcopy     # OS X only - copies to clipboard
+  $ open "commit_url"              # OS X only - opens in web browser
   ```
 
 * Use '-h' or '--help' to get help manual
