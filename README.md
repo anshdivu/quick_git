@@ -40,7 +40,7 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
       -h, --help                       Prints help message
       -m, --message=<msg>              Uses the given <msg> as the commit message. Uses '<prefix>-<number> <msg>' as the commit message format
       -n, --number=<number>            Uses the given <number> as part of the commit message. The commit message format will be '<prefix>-<number> <msg>'
-      -o, --open                       Opens commit url in browser and copies the url to clipboard
+      -o, --open                       (OS X only) Opens commit url in browser and copies the url to clipboard
       -p, --push                       Push commits to remote
       -r, --prefix=<prefix>            Uses the given <prefix> as part of the commit message. The commit message format will be '<prefix>-<NUMBER> <msg>'
   ```
@@ -54,6 +54,8 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
   ```bash
   $ git add -A .
   $ git commit -v -m "ISSUE-NUM Easy Commit"
-  $ git push origin MY_BRANCH
+  $ git push origin CURRENT_BRANCH
+  $ echo "commit_url" | phcopy # OS X only - copies to clipboard
+  $ open "commit_url" # OS X only - opens in web browser
   ```
 
