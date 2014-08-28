@@ -1,7 +1,17 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'pry'
 
 class Git
+  attr_reader :raw_msg
+
+  def initialize(options = {})
+    @jira_number = options[:number]
+    @jira_prefix = options[:prefix]
+    @raw_msg     = options[:msg]
+    binding.pry
+  end
+
   def branch
     @branch ||= Branch.new
   end
@@ -14,8 +24,12 @@ class Git
     system 'git add -A .'
   end
 
-  def commit!(msg)
-    system "git commit -v -m \"#{msg}\""
+  def message
+    jira_number ? "#{jira_prefix}-#{jira_number}: #{raw_msg}" : raw_msg
+  end
+
+  def commit!
+    system "git commit -v -m \"#{message}\""
   end
 
   def push!
@@ -37,11 +51,11 @@ class Git
   end
 
   def jira_number
-    branch.jira_number || raise('Incorrect Branch Name Format (Branch Name Format => "PREFIX-NUMBER-jira-description")')
+    @jira_number ||= branch.jira_number
   end
 
   def jira_prefix
-    branch.jira_prefix || github_org_name || raise('jira prefix not found from remote repo')
+    @jira_prefix ||= branch.jira_prefix || github_org_name
   end
 
   private
@@ -109,12 +123,12 @@ class CommandLine
   attr_reader :options, :git
   def initialize
     @options = cmd_options
-    @git = Git.new
+    @git = Git.new(@options)
   end
 
   def run
     git.add_all! if options[:add_all]
-    git.commit!(message) if options[:msg]
+    git.commit! if options[:msg]
     git.push! if options[:push]
     copy_and_open!(git.last_commit_url) if options[:open]
   end
@@ -122,13 +136,6 @@ class CommandLine
   def copy_and_open!(url)
     system "echo '#{url}' | pbcopy"
     system "open #{url}"
-  end
-
-  def message
-    prefix = options.fetch(:prefix) { git.jira_prefix }
-    number = options.fetch(:number) { git.jira_number }
-
-    "#{prefix}-#{number}: #{options[:msg]}"
   end
 
   def cmd_options
@@ -152,7 +159,7 @@ class CommandLine
         options[:number] = jira_num
       end
 
-      opts.on('-o', '--open', 'Opens commit url in browser and copies the url to clipboard') do
+      opts.on('-o', '--open', '(OS X Only) Opens commit url in browser and copies the url to clipboard') do
         options[:open] = true
       end
 
@@ -166,6 +173,7 @@ class CommandLine
     end
     opt_parser.parse!
 
+    # after all this parsing if only one arg is left assume it's the message
     options[:msg] = ARGV[0] if !options.has_key?(:msg) && ARGV.size == 1
 
     options
