@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'optparse'
-require 'pry'
 
 class Git
   attr_reader :raw_msg
@@ -9,7 +8,6 @@ class Git
     @jira_number = options[:number]
     @jira_prefix = options[:prefix]
     @raw_msg     = options[:msg]
-    binding.pry
   end
 
   def branch
