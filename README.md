@@ -18,6 +18,7 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
   This command would internally execute:
   ```bash
   $ git commit -v -m "ISSUE-NUM Easy Commit"
+  ```
 
 * Assuming you are working in branch "123-my-branch" and the repo url is "https://github.com/MyOrg/MyRepo"
 
@@ -28,6 +29,23 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
   This command would internally execute:
   ```bash
   $ git commit -v -m "MyOrg-123 Easy Commit"
+  ```
+
+
+* My Favorite combination:
+
+  ```bash
+  $ qg -apo "Awesome Commit"
+  ```
+
+  This command would internally execute:
+  ```bash
+  $ git add -A .
+  $ git commit -v -m "ISSUE-NUM Easy Commit"
+  $ git push origin CURRENT_BRANCH
+  $ echo "commit_url" | phcopy # OS X only - copies to clipboard
+  $ open "commit_url" # OS X only - opens in web browser
+  ```
 
 * Use '-h' or '--help' to get help manual
 
@@ -44,18 +62,4 @@ $ ln -s $PWD/git_commit_jira /usr/local/bin/qg
       -p, --push                       Push commits to remote
       -r, --prefix=<prefix>            Uses the given <prefix> as part of the commit message. The commit message format will be '<prefix>-<NUMBER> <msg>'
   ```
-* My Favorite combination:
-
-  ```bash
-  $ qg -apo "Awesome Commit"
-  ```
-
-  This command would internally execute:
-  ```bash
-  $ git add -A .
-  $ git commit -v -m "ISSUE-NUM Easy Commit"
-  $ git push origin CURRENT_BRANCH
-  $ echo "commit_url" | phcopy # OS X only - copies to clipboard
-  $ open "commit_url" # OS X only - opens in web browser
-  ```
-
+  
