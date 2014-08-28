@@ -14,10 +14,6 @@ class Git
     @branch ||= Branch.new
   end
 
-  def branch_name
-    branch.name
-  end
-
   def add_all!
     system 'git add -A .'
   end
@@ -31,7 +27,7 @@ class Git
   end
 
   def push!
-    status = system("git push origin #{branch_name}")
+    status = system("git push origin #{branch.name}")
     puts last_commit_url if status
     status
   end
