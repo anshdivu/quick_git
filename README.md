@@ -6,7 +6,7 @@ Makes the most common Git workflow really easy. Add, commit and push in one simp
 ```bash
 $ git clone https://github.com/anshdivu/quick_git.git
 $ cd quick_git
-$ ln -s $PWD/git_commit_jira /usr/local/bin/qg
+$ ln -s $PWD/quick_git /usr/local/bin/qg
 ```
 
 ### Usage Example:
